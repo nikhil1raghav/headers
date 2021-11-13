@@ -12,22 +12,80 @@ const Board=({color, text, textColor, subText})=>{
 		</div>
 	)
 }
+const lineWrap=(context, pos, text)=>{
+	
+	let x = pos.x;
+	let y = pos.y;
+	let lineHeight = pos.lineHeight;
+	let maxWidth = pos.maxWidth;
+
+	let tokens = text.split(' ');
+	let line = '';
+	for(let i=0;i<tokens.length;i++){
+		let withToken = line+tokens[i]+' ';
+		let newWidth = context.measureText(withToken).width;
+		if(newWidth <= maxWidth){
+			line = withToken;
+		}else{
+			context.fillText(line, x, y);
+			if(i+1<tokens.length){
+				line = tokens[i]+' ';
+				y+=lineHeight;
+			}
+		}
+	}
+
+	context.fillText(line, x, y);
+	y+=lineHeight;
+
+	pos.x=x;
+	pos.y=y;
+}
+
 const Canvas=({color, textColor, text, subText, getLink})=>{
 	let ref=useRef();
 	let link="";
 	useEffect(()=>{
+		text = text + ' ';
+		subText = subText+ ' ';
 		console.log("using",color);
 		let canvas=ref.current;
 		let context=canvas.getContext('2d');
 		canvas.width=1500;canvas.height=500;
 		context.fillStyle=color;
+		
+
 		context.fillRect(0,0,1500,500);
+
 		context.fillStyle=textColor;
+
+		let pos ={
+			x: 1400,
+			y: 200,
+			lineHeight: 70*1.26,
+			maxWidth: 1400*0.66
+
+		}
+
+
 		context.font="900 70px Poppins";
+
 		context.textAlign='right';
-		context.fillText(text, 1400,200,768);
+		
+		lineWrap(context, pos, text);
+
+
 		context.font="300 30px Poppins";
-		context.fillText(subText,1400,270,800);
+		
+		lineWrap(context, pos, subText);
+		
+
+//		context.fillText(subText,1400,270);
+
+
+		
+
+
 		let data=canvas.toDataURL();
 		link=data.replace("image/png","image/octet-stream");
 		getLink(link);
